@@ -16,19 +16,24 @@ authors = [
 
 [features]
 default = []
-native-tls-example = ["hyper-native-tls"]
+ssl = ["native-tls", "tokio-tls"]
 
 [dependencies]
 typemap = "0.3"
 url = "1.1"
 plugin = "0.2"
-mime_guess = "1.8.1"
+mime_guess = "2.0.0-alpha.1"
 modifier = "0.1"
 log = "0.3"
-num_cpus = "1.0"
-hyper = "0.10"
-hyper-native-tls = { version = "0.2", optional = true }
+hyper = "0.11"
+futures = "0.1"
+tokio-core = "0.1"
+tokio-io = "0.1"
+tokio-proto = "0.1"
+futures-cpupool = "0.1"
+tokio-tls = { version = "0.1.1", optional = true, features = ["tokio-proto"] }
+native-tls = { version = "0.1.1", optional = true }
 
 [dev-dependencies]
 time = "0.1"
-mime = "0.2"
+mime = "0.3"

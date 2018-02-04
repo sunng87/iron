@@ -1,6 +1,7 @@
 //! A simple demonstration how iron's helper macros make e.g. IO-intensive code easier to write.
 #[macro_use] extern crate zhelezo as iron;
 
+use std::io::Cursor;
 use std::io;
 use std::fs;
 
@@ -21,11 +22,11 @@ fn main() {
                 // If creating the file fails, something is messed up on our side. We probably want
                 // to log the error, so we use `itry` instead of `iexpect`.
                 let mut f = itry!(fs::File::create("foo.txt"));
-                itry!(io::copy(&mut req.body, &mut f));
+                itry!(io::copy(&mut Cursor::new(itry!(req.get_body_contents())), &mut f));
                 Response::with(status::Created)
             },
             _ => Response::with(status::BadRequest)
         })
-    }).http("localhost:3000").unwrap();
+    }).http("localhost:3000");
 }
 

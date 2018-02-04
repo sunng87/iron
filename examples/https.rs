@@ -13,29 +13,32 @@
 // ```
 
 extern crate zhelezo as iron;
-#[cfg(feature = "native-tls-example")]
-extern crate hyper_native_tls;
+#[cfg(feature = "ssl")]
+extern crate native_tls;
 
-#[cfg(feature = "native-tls-example")]
+#[cfg(feature = "ssl")]
 fn main() {
     // Avoid unused errors due to conditional compilation ('native-tls-example' feature is not default)
-    use hyper_native_tls::NativeTlsServer;
+    use native_tls::{Pkcs12, TlsAcceptor};
     use iron::{Iron, Request, Response};
     use iron::status;
-    use std::result::Result;
+    use std::io::prelude::*;
+    use std::fs::File;
 
-    let ssl = NativeTlsServer::new("identity.p12", "mypass").unwrap();
+    let mut file = File::open("identity.p12").unwrap();
+    let mut pkcs12 = vec![];
+    file.read_to_end(&mut pkcs12).unwrap();
+    let pkcs12 = Pkcs12::from_der(&pkcs12, "mypass").unwrap();
 
-    match Iron::new(|_: &mut Request| {
+    let ssl = TlsAcceptor::builder(pkcs12).unwrap().build().unwrap();
+
+    Iron::new(|_: &mut Request| {
         Ok(Response::with((status::Ok, "Hello world!")))
-    }).https("127.0.0.1:3000", ssl) {
-        Result::Ok(listening) => println!("{:?}", listening),
-        Result::Err(err) => panic!("{:?}", err),
-    }
+    }).https("127.0.0.1:3000", ssl);
     // curl -vvvv https://127.0.0.1:3000/ -k
 }
 
-#[cfg(not(feature = "native-tls-example"))]
+#[cfg(not(feature = "ssl"))]
 fn main() {
     // We need to do this to make sure `cargo test` passes.
 }

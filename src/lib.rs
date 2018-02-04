@@ -27,7 +27,7 @@
 //! fn main() {
 //!     Iron::new(|_: &mut Request| {
 //!         Ok(Response::with((status::Ok, "Hello World!")))
-//!     }).http("localhost:3000").unwrap();
+//!     }).http("localhost:3000");
 //! }
 //! ```
 //!
@@ -67,8 +67,16 @@ extern crate hyper;
 extern crate typemap as tmap;
 extern crate plugin;
 extern crate url as url_ext;
-extern crate num_cpus;
 extern crate mime_guess;
+extern crate futures;
+#[cfg(feature = "ssl")]
+extern crate native_tls;
+extern crate tokio_core;
+extern crate tokio_io;
+extern crate tokio_proto;
+#[cfg(feature = "ssl")]
+extern crate tokio_tls;
+extern crate futures_cpupool;
 
 // Request + Response
 pub use request::{Request, Url};
@@ -142,15 +150,14 @@ pub mod url {
 
 /// Status Codes
 pub mod status {
-    pub use hyper::status::StatusCode as Status;
-    pub use hyper::status::StatusCode::*;
-    pub use hyper::status::StatusClass;
+    pub use hyper::StatusCode as Status;
+    pub use hyper::StatusCode::*;
 }
 
 /// HTTP Methods
 pub mod method {
-    pub use hyper::method::Method;
-    pub use hyper::method::Method::*;
+    pub use hyper::Method;
+    pub use hyper::Method::*;
 }
 
 // Publicized to show the documentation
