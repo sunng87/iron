@@ -1,7 +1,7 @@
 [package]
 
 name = "zhelezo"
-version = "0.7.0-beta.1"
+version = "0.7.0-beta.2"
 description = "Extensible, Concurrency Focused Web Development in Rust."
 readme = "README.md"
 repository = "https://github.com/sunng87/zhelezo"
