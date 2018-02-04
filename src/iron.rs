@@ -1,33 +1,27 @@
 //! Exposes the `Iron` type, the main entrance point of the
 //! `Iron` library.
 
-use std::io::{Error as IoError};
-use std::net::{ToSocketAddrs, SocketAddr};
+use std::net::{SocketAddr, ToSocketAddrs};
 use std::sync::Arc;
 use std::time::Duration;
 
-use futures::{future, Future, Stream};
+use futures::{future, Future};
 use futures_cpupool::CpuPool;
-
-use tokio_core::reactor::{Core, Handle};
-use tokio_io::{AsyncRead, AsyncWrite};
 
 use tokio_proto::TcpServer;
 
 use hyper::{Body, Error};
-use hyper::server::{NewService, Http};
+use hyper::server::Http;
 
 use request::HttpRequest;
 use response::HttpResponse;
-
-use error::HttpResult;
 
 #[cfg(feature = "ssl")]
 use native_tls::TlsAcceptor;
 #[cfg(feature = "ssl")]
 use tokio_tls::proto::Server as TlsServer;
 
-use {Request, Handler};
+use {Handler, Request};
 use status;
 
 /// The primary entrance point to `Iron`, a `struct` to instantiate a new server.
@@ -80,7 +74,7 @@ pub struct Timeouts {
     /// Controls the timeout for writes on existing connections.
     ///
     /// The default is `Some(Duration::from_secs(1))`
-    pub write: Option<Duration>
+    pub write: Option<Duration>,
 }
 
 impl Default for Timeouts {
@@ -88,7 +82,7 @@ impl Default for Timeouts {
         Timeouts {
             keep_alive: Some(Duration::from_secs(5)),
             read: Some(Duration::from_secs(30)),
-            write: Some(Duration::from_secs(1))
+            write: Some(Duration::from_secs(1)),
         }
     }
 }
@@ -142,7 +136,8 @@ impl<H: Handler> Iron<H> {
     ///
     /// Call this once to begin listening for requests on the server.
     pub fn http<A>(mut self, addr: A)
-        where A: ToSocketAddrs
+    where
+        A: ToSocketAddrs,
     {
         let addr: SocketAddr = addr.to_socket_addrs().unwrap().next().unwrap();
         self.local_address = Some(addr.clone());
@@ -158,7 +153,8 @@ impl<H: Handler> Iron<H> {
     /// Call this once to begin listening for requests on the server.
     #[cfg(feature = "ssl")]
     pub fn https<A>(mut self, addr: A, tls: TlsAcceptor)
-        where A: ToSocketAddrs
+    where
+        A: ToSocketAddrs,
     {
         let addr = addr.to_socket_addrs().unwrap().next().unwrap();
 
@@ -172,25 +168,6 @@ impl<H: Handler> Iron<H> {
         let tcp_server = TcpServer::new(tls_server, addr);
         tcp_server.serve(self);
     }
-
-    /// Kick off a server process on an arbitrary `Listener`.
-    ///
-    /// Most use cases may call `http` and `https` methods instead of this.
-    pub fn listen<L, S>(mut self, listener: L, addr: SocketAddr, protocol: Protocol, mut core: Core, handle: Handle) -> HttpResult<()>
-        where L: Stream<Item=(S, SocketAddr), Error=IoError>,
-        S: AsyncRead + AsyncWrite + 'static,
-    {
-        self.protocol = protocol;
-        self.local_address = Some(addr);
-
-        let http = Http::new();
-        let server = listener.for_each(|(sock, remote_addr)| {
-            http.bind_connection(&handle, sock, remote_addr, self.new_service().unwrap());
-            future::ok(())
-        });
-
-        core.run(server).map_err(|e| e.into())
-    }
 }
 
 impl<H: Handler> ::hyper::server::NewService for Iron<H> {
@@ -200,7 +177,7 @@ impl<H: Handler> ::hyper::server::NewService for Iron<H> {
     type Instance = IronHandler<H>;
 
     fn new_service(&self) -> Result<Self::Instance, ::std::io::Error> {
-        Ok(IronHandler{
+        Ok(IronHandler {
             handler: self.handler.clone(),
             addr: self.local_address.clone(),
             protocol: self.protocol.clone(),
@@ -221,7 +198,7 @@ impl<H: Handler> ::hyper::server::Service for IronHandler<H> {
     type Request = HttpRequest;
     type Response = HttpResponse;
     type Error = Error;
-    type Future = Box<Future<Item=Self::Response,Error=Self::Error>>;
+    type Future = Box<Future<Item = Self::Response, Error = Self::Error>>;
 
     fn call(&self, req: Self::Request) -> Self::Future {
         let addr = self.addr.clone();
@@ -233,11 +210,14 @@ impl<H: Handler> ::hyper::server::Service for IronHandler<H> {
             match Request::from_http(req, addr, &proto) {
                 Ok(mut req) => {
                     // Dispatch the request, write the response back to http_res
-                    handler.handle(&mut req).unwrap_or_else(|e| {
-                        error!("Error handling:\n{:?}\nError was: {:?}", req, e.error);
+                    handler
+                        .handle(&mut req)
+                        .unwrap_or_else(|e| {
+                            error!("Error handling:\n{:?}\nError was: {:?}", req, e.error);
                             e.response
-                    }).write_back(&mut http_res)
-                },
+                        })
+                        .write_back(&mut http_res)
+                }
                 Err(e) => {
                     error!("Error creating request:\n    {}", e);
                     bad_request(&mut http_res)
@@ -251,4 +231,3 @@ impl<H: Handler> ::hyper::server::Service for IronHandler<H> {
 fn bad_request(http_res: &mut HttpResponse<Body>) {
     http_res.set_status(status::BadRequest);
 }
-
