@@ -12,8 +12,8 @@
 //! return status code:
 //!
 //! ```
-//! # use iron::prelude::*;
-//! # use iron::status;
+//! # use zhelezo::prelude::*;
+//! # use zhelezo::status;
 //! let r = Response::with(status::NotFound);
 //! assert_eq!(r.status.unwrap().to_u16(), 404);
 //! ```
@@ -23,18 +23,18 @@
 //! body message:
 //!
 //! ```
-//! # use iron::prelude::*;
-//! # use iron::status;
+//! # use zhelezo::prelude::*;
+//! # use zhelezo::status;
 //! Response::with((status::ImATeapot, "I am a tea pot!"));
 //! ```
 //!
 //! There is also a `Redirect` modifier:
 //!
 //! ```
-//! # use iron::prelude::*;
-//! # use iron::status;
-//! # use iron::modifiers;
-//! # use iron::Url;
+//! # use zhelezo::prelude::*;
+//! # use zhelezo::status;
+//! # use zhelezo::modifiers;
+//! # use zhelezo::Url;
 //! let url = Url::parse("http://doc.rust-lang.org").unwrap();
 //! Response::with((status::Found, modifiers::Redirect(url)));
 //! ```

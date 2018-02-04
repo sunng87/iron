@@ -3,7 +3,7 @@
 // Shows how to read the request body with error handling and how to return a
 // response. See `helper_macros` example for a different way to handle errors.
 
-extern crate iron;
+extern crate zhelezo as iron;
 
 use std::io::Read;
 

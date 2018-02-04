@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate mime;
-extern crate iron;
+extern crate zhelezo as iron;
 
 use std::env;
 

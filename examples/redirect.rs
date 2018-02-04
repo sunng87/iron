@@ -1,4 +1,4 @@
-extern crate iron;
+extern crate zhelezo as iron;
 
 use iron::prelude::*;
 use iron::modifiers::Redirect;

@@ -1,7 +1,7 @@
 // This example shows how to create a basic router that maps url to different handlers.
 // If you're looking for real routing middleware, check https://github.com/iron/router
 
-extern crate iron;
+extern crate zhelezo as iron;
 
 use std::collections::HashMap;
 

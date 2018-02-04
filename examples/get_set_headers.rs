@@ -1,4 +1,4 @@
-extern crate iron;
+extern crate zhelezo as iron;
 
 use iron::{Iron, Request, Response, IronResult, AfterMiddleware, Chain};
 

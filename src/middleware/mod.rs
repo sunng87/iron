@@ -12,9 +12,9 @@
 //! Here's an example of a `Handler`:
 //!
 //! ```rust
-//! use iron::prelude::*;
-//! use iron::Handler;
-//! use iron::status;
+//! use zhelezo::prelude::*;
+//! use zhelezo::Handler;
+//! use zhelezo::status;
 //!
 //! fn hello_handler(req: &mut Request) -> IronResult<Response> {
 //!     Ok(Response::with((status::Ok, "Hello world!")))
@@ -50,10 +50,10 @@
 //! each type of middleware. A sample middleware pipeline is shown below:
 //!
 //! ```rust
-//! use iron::prelude::*;
-//! use iron::middleware::*;
+//! use zhelezo::prelude::*;
+//! use zhelezo::middleware::*;
 //!
-//! # use iron::status;
+//! # use zhelezo::status;
 //! # fn hello_handler(req: &mut Request) -> IronResult<Response> {
 //! #     Ok(Response::with((status::Ok, "Hello world!")))
 //! # };

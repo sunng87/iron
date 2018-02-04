@@ -12,7 +12,7 @@
 //
 // ```
 
-extern crate iron;
+extern crate zhelezo as iron;
 #[cfg(feature = "native-tls-example")]
 extern crate hyper_native_tls;
 

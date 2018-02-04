@@ -1,4 +1,4 @@
-extern crate iron;
+extern crate zhelezo as iron;
 
 use std::time::Duration;
 

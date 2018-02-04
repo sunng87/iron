@@ -19,7 +19,7 @@
 //! ## Hello World
 //!
 //! ```no_run
-//! extern crate iron;
+//! extern crate zhelezo as iron;
 //!
 //! use iron::prelude::*;
 //! use iron::status;
@@ -112,7 +112,7 @@ pub type IronResult<T> = Result<T, IronError>;
 /// For instance:
 ///
 /// ```
-/// use iron::prelude::*;
+/// use zhelezo::prelude::*;
 /// ```
 ///
 /// This module contains several important traits that provide many

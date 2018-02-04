@@ -1,4 +1,4 @@
-extern crate iron;
+extern crate zhelezo as iron;
 extern crate time;
 
 use iron::prelude::*;

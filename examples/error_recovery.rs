@@ -6,7 +6,7 @@
 //
 //               --------------- BEFORE MIDDLEWARE ----------------- || --------- HANDLER --------  ||  ---------------- AFTER MIDDLEWARE --------------
 
-extern crate iron;
+extern crate zhelezo as iron;
 
 use iron::prelude::*;
 use iron::status;

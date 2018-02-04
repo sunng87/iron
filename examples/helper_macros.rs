@@ -1,5 +1,5 @@
 //! A simple demonstration how iron's helper macros make e.g. IO-intensive code easier to write.
-#[macro_use] extern crate iron;
+#[macro_use] extern crate zhelezo as iron;
 
 use std::io;
 use std::fs;
