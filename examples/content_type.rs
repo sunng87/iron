@@ -1,4 +1,3 @@
-#[macro_use]
 extern crate mime;
 extern crate zhelezo as iron;
 
