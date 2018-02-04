@@ -15,8 +15,6 @@
 //! # use std::convert::Into;
 //! # use zhelezo::prelude::*;
 //! # use zhelezo::status;
-//! # use iron::prelude::*;
-//! # use iron::status;
 //! let r = Response::with(status::NotFound);
 //! assert_eq!(404 as u16, r.status.unwrap().into());
 //! ```
@@ -58,11 +56,10 @@ use modifier::Modifier;
 use hyper::mime;
 use hyper::mime::Mime;
 
-use {status, headers, Request, Response, Set, Url};
+use {headers, status, Request, Response, Set, Url};
 
 use mime_guess::guess_mime_type_opt;
-use response::{WriteBody, BodyReader};
-
+use response::{BodyReader, WriteBody};
 
 impl Modifier<Response> for Mime {
     #[inline]
@@ -78,7 +75,7 @@ impl Modifier<Response> for Box<WriteBody> {
     }
 }
 
-impl <R: io::Read + Send + 'static> Modifier<Response> for BodyReader<R> {
+impl<R: io::Read + Send + 'static> Modifier<Response> for BodyReader<R> {
     #[inline]
     fn modify(self, res: &mut Response) {
         res.body = Some(Box::new(self));
@@ -164,14 +161,18 @@ impl Modifier<Response> for status::Status {
 pub struct Header<H: headers::Header>(pub H);
 
 impl<H> Modifier<Response> for Header<H>
-where H: headers::Header {
+where
+    H: headers::Header,
+{
     fn modify(self, res: &mut Response) {
         res.headers.set(self.0);
     }
 }
 
 impl<H> Modifier<Request> for Header<H>
-where H: headers::Header {
+where
+    H: headers::Header,
+{
     fn modify(self, res: &mut Request) {
         res.headers.set(self.0);
     }
@@ -198,10 +199,8 @@ impl Modifier<Response> for RedirectRaw {
 }
 
 fn mime_for_path(path: &Path) -> Mime {
-    guess_mime_type_opt(path)
-        .unwrap_or(mime::TEXT_PLAIN)
+    guess_mime_type_opt(path).unwrap_or(mime::TEXT_PLAIN)
 }
-
 
 #[cfg(test)]
 mod test {
@@ -209,13 +208,12 @@ mod test {
 
     #[test]
     fn test_mime_for_path() {
-        assert_eq!(mime_for_path(Path::new("foo.txt")),
-                   mime::TEXT_PLAIN);
-        assert_eq!(mime_for_path(Path::new("foo.jpg")),
-                   mime::IMAGE_JPEG);
-        assert_eq!(mime_for_path(Path::new("foo.zip")),
-                   "application/zip".parse::<Mime>().unwrap());
-        assert_eq!(mime_for_path(Path::new("foo")),
-                   mime::TEXT_PLAIN);
+        assert_eq!(mime_for_path(Path::new("foo.txt")), mime::TEXT_PLAIN);
+        assert_eq!(mime_for_path(Path::new("foo.jpg")), mime::IMAGE_JPEG);
+        assert_eq!(
+            mime_for_path(Path::new("foo.zip")),
+            "application/zip".parse::<Mime>().unwrap()
+        );
+        assert_eq!(mime_for_path(Path::new("foo")), mime::TEXT_PLAIN);
     }
 }
