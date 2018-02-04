@@ -1,11 +1,11 @@
 [package]
 
-name = "iron"
-version = "0.6.0"
+name = "zhelezo"
+version = "0.7.0-dev"
 description = "Extensible, Concurrency Focused Web Development in Rust."
 readme = "README.md"
-repository = "https://github.com/iron/iron"
-documentation = "http://ironframework.io/doc/iron/"
+repository = "https://github.com/sunng87/zhelezo"
+documentation = "http://docs.rs/crates/zhelezo"
 license = "MIT"
 authors = [
     "Jonathan Reem <jonathan.reem@gmail.com>",
@@ -13,10 +13,6 @@ authors = [
     "Michael Sproul <micsproul@gmail.com>",
     "Patrick Tran <patrick.tran06@gmail.com>"
 ]
-
-[lib]
-name = "iron"
-path = "src/lib.rs"
 
 [features]
 default = []
