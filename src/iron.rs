@@ -8,10 +8,11 @@ use std::time::Duration;
 use futures::{future, Future};
 use futures_cpupool::CpuPool;
 
+use tokio_core::reactor::Handle;
 use tokio_proto::TcpServer;
 
 use hyper::{Body, Error};
-use hyper::server::Http;
+use hyper::server::{Http, NewService};
 
 use request::HttpRequest;
 use response::HttpResponse;
@@ -145,7 +146,20 @@ impl<H: Handler> Iron<H> {
         let http = Http::new();
 
         let tcp_server = TcpServer::new(http, addr);
-        tcp_server.serve(self);
+
+        // I have no idea why this worked:
+        // https://github.com/tokio-rs/tokio-proto/issues/182
+        let new_service = Arc::new(move |handle: Handle| {
+            self.new_service().map(|mut iron_handler| {
+                iron_handler.event_loop = Some(handle);
+                iron_handler
+            })
+        });
+        tcp_server.with_handle(move |handle| {
+            let h = handle.remote().clone();
+            let new_service = new_service.clone();
+            move || new_service(h.handle().unwrap())
+        });
     }
 
     /// Kick off the server process using the HTTPS protocol.
@@ -170,7 +184,7 @@ impl<H: Handler> Iron<H> {
     }
 }
 
-impl<H: Handler> ::hyper::server::NewService for Iron<H> {
+impl<H: Handler> NewService for Iron<H> {
     type Request = HttpRequest;
     type Response = HttpResponse;
     type Error = ::hyper::Error;
@@ -182,6 +196,7 @@ impl<H: Handler> ::hyper::server::NewService for Iron<H> {
             addr: self.local_address.clone(),
             protocol: self.protocol.clone(),
             pool: self.pool.clone(),
+            event_loop: None,
         })
     }
 }
@@ -192,6 +207,7 @@ pub struct IronHandler<H> {
     addr: Option<SocketAddr>,
     protocol: Protocol,
     pool: CpuPool,
+    event_loop: Option<Handle>,
 }
 
 impl<H: Handler> ::hyper::server::Service for IronHandler<H> {
@@ -204,10 +220,11 @@ impl<H: Handler> ::hyper::server::Service for IronHandler<H> {
         let addr = self.addr.clone();
         let proto = self.protocol.clone();
         let handler = self.handler.clone();
+        let event_loop = self.event_loop.as_ref().map(|h| h.remote().clone());
         Box::new(self.pool.spawn_fn(move || {
             let mut http_res = HttpResponse::<Body>::new().with_status(status::InternalServerError);
 
-            match Request::from_http(req, addr, &proto) {
+            match Request::from_http(req, addr, &proto, event_loop.and_then(|h| h.handle())) {
                 Ok(mut req) => {
                     // Dispatch the request, write the response back to http_res
                     handler
