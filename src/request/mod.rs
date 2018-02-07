@@ -5,6 +5,8 @@ use std::net::SocketAddr;
 
 use futures::Stream;
 
+use tokio_core::reactor::Handle;
+
 use hyper::HttpVersion;
 
 use typemap::{Key, TypeMap};
@@ -53,6 +55,9 @@ pub struct Request {
     /// The version of the HTTP protocol used.
     pub version: HttpVersion,
 
+    /// The event_loop
+    pub event_loop: Option<Handle>,
+
     _p: (),
 }
 
@@ -79,6 +84,7 @@ impl Request {
         req: HttpRequest,
         local_addr: Option<SocketAddr>,
         protocol: &Protocol,
+        event_loop: Option<Handle>,
     ) -> Result<Request, String> {
         let addr = req.remote_addr().take();
         let (method, uri, version, headers, body) = req.deconstruct();
@@ -125,6 +131,7 @@ impl Request {
             method: method,
             extensions: TypeMap::new(),
             version: version,
+            event_loop: event_loop,
             _p: (),
         })
     }
@@ -164,6 +171,7 @@ impl Request {
             method: Method::Get,
             extensions: TypeMap::new(),
             version: HttpVersion::Http11,
+            event_loop: None,
             _p: (),
         }
     }
@@ -201,7 +209,7 @@ mod test {
     fn test_request_parse_absolute_uri() {
         let hyper_request = HttpRequest::new(Method::Get, "http://my-host/path".parse().unwrap());
 
-        let iron_request = Request::from_http(hyper_request, None, &Protocol::http())
+        let iron_request = Request::from_http(hyper_request, None, &Protocol::http(), None)
             .expect("A valid Iron request");
 
         assert_eq!(iron_request.url.host(), Domain("my-host"));
@@ -214,7 +222,7 @@ mod test {
             .headers_mut()
             .set(HostHeader::new("my-host", None));
 
-        let iron_request = Request::from_http(hyper_request, None, &Protocol::http())
+        let iron_request = Request::from_http(hyper_request, None, &Protocol::http(), None)
             .expect("A valid Iron request");
 
         assert_eq!(iron_request.url.host(), Domain("my-host"));
@@ -228,7 +236,7 @@ mod test {
             .headers_mut()
             .set(HostHeader::new("my-host-header", None));
 
-        let iron_request = Request::from_http(hyper_request, None, &Protocol::http())
+        let iron_request = Request::from_http(hyper_request, None, &Protocol::http(), None)
             .expect("A valid Iron request");
 
         assert_eq!(iron_request.url.host(), Domain("my-host-uri"));
@@ -240,7 +248,7 @@ mod test {
         hyper_request.set_version(HttpVersion::Http10);
 
         let socket_addr = Some("1.2.3.4:80".parse().unwrap());
-        let iron_request = Request::from_http(hyper_request, socket_addr, &Protocol::http())
+        let iron_request = Request::from_http(hyper_request, socket_addr, &Protocol::http(), None)
             .expect("A valid Iron request");
 
         assert_eq!(iron_request.url.host(), Ipv4([1, 2, 3, 4].into()));
@@ -252,7 +260,7 @@ mod test {
         hyper_request.set_version(HttpVersion::Http10);
 
         let socket_addr = Some("[1:2:3:4:5:6:7:8]:80".parse().unwrap());
-        let iron_request = Request::from_http(hyper_request, socket_addr, &Protocol::http())
+        let iron_request = Request::from_http(hyper_request, socket_addr, &Protocol::http(), None)
             .expect("A valid Iron request");
 
         assert_eq!(
@@ -270,7 +278,7 @@ mod test {
             .set(HostHeader::new("my-host-header", None));
 
         let socket_addr = Some("1.2.3.4:80".parse().unwrap());
-        let iron_request = Request::from_http(hyper_request, socket_addr, &Protocol::http())
+        let iron_request = Request::from_http(hyper_request, socket_addr, &Protocol::http(), None)
             .expect("A valid Iron request");
 
         assert_eq!(iron_request.url.host(), Domain("my-host-uri"));
